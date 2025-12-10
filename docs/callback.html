@@ -59,9 +59,21 @@
         2
     );
 
-    // 4) Se c'è un access_token, facciamo deep link verso l'app
+    // 4) Ricaviamo lo slot dallo state: es. "slot1-1733849..."
+    let slot = "1";
+    const state = fragmentParams["state"] || queryParams["state"] || "";
+    if (state.startsWith("slot")) {
+        // prendiamo la parte prima del '-', es. "slot1"
+        const dashIdx = state.indexOf("-");
+        const prefix = dashIdx >= 0 ? state.substring(0, dashIdx) : state;
+        const numPart = prefix.replace("slot", "");
+        if (/^[0-9]+$/.test(numPart)) {
+            slot = numPart;
+        }
+    }
+
+    // 5) Se c'è un access_token, facciamo deep link verso l'app
     const token = fragmentParams['access_token'];
-    const slot = queryParams['slot'] || '1';
 
     if (token) {
         const deeplink = `ircminichat://auth?slot=${encodeURIComponent(slot)}#access_token=${encodeURIComponent(token)}`;
