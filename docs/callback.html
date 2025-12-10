@@ -24,14 +24,41 @@
     <p>Parametri ricevuti:</p>
     <pre id="output"></pre>
 
-    <script>
-        const out = document.getElementById('output');
-        const url = new URL(window.location.href);
-        const params = {};
-        for (const [k, v] of url.searchParams.entries()) {
-            params[k] = v;
+<script>
+    const out = document.getElementById('output');
+
+    // 1) Parametri di query (?a=b&c=d)
+    const url = new URL(window.location.href);
+    const queryParams = {};
+    for (const [k, v] of url.searchParams.entries()) {
+        queryParams[k] = v;
+    }
+
+    // 2) Parametri nel frammento (#access_token=...&scope=...)
+    const hash = window.location.hash.startsWith('#')
+        ? window.location.hash.substring(1)
+        : window.location.hash;
+
+    const fragmentParams = {};
+    if (hash.length > 0) {
+        const parts = hash.split('&');
+        for (const p of parts) {
+            const [k, v] = p.split('=');
+            if (!k) continue;
+            fragmentParams[k] = decodeURIComponent(v || '');
         }
-        out.textContent = JSON.stringify(params, null, 2);
-    </script>
+    }
+
+    // 3) Mostra tutto in modo carino
+    out.textContent = JSON.stringify(
+        {
+            query: queryParams,
+            fragment: fragmentParams
+        },
+        null,
+        2
+    );
+</script>
+
 </body>
 </html>
