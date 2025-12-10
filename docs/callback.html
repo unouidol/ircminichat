@@ -27,14 +27,14 @@
 <script>
     const out = document.getElementById('output');
 
-    // 1) Parametri di query (?a=b&c=d)
+    // 1) Parametri di query (in pratica non ci servono, ma li mostriamo per debug)
     const url = new URL(window.location.href);
     const queryParams = {};
     for (const [k, v] of url.searchParams.entries()) {
         queryParams[k] = v;
     }
 
-    // 2) Parametri nel frammento (#access_token=...&scope=...)
+    // 2) Parametri nel frammento (#access_token=...&scope=...&state=...)
     const hash = window.location.hash.startsWith('#')
         ? window.location.hash.substring(1)
         : window.location.hash;
@@ -49,7 +49,7 @@
         }
     }
 
-    // 3) Mostra tutto (debug)
+    // 3) Mostra tutto (utile per debug)
     out.textContent = JSON.stringify(
         {
             query: queryParams,
@@ -59,31 +59,30 @@
         2
     );
 
-    // 4) Ricaviamo lo slot dallo state: es. "slot1-1733849..."
+    // 4) Ricaviamo lo slot dallo state: es. "slot1-17338..."
     let slot = "1";
-    const state = fragmentParams["state"] || queryParams["state"] || "";
+    const state = fragmentParams["state"] || "";
     if (state.startsWith("slot")) {
-        // prendiamo la parte prima del '-', es. "slot1"
-        const dashIdx = state.indexOf("-");
-        const prefix = dashIdx >= 0 ? state.substring(0, dashIdx) : state;
-        const numPart = prefix.replace("slot", "");
-        if (/^[0-9]+$/.test(numPart)) {
-            slot = numPart;
+        const match = state.match(/^slot(\d+)/);
+        if (match && match[1]) {
+            slot = match[1];
         }
     }
 
-    // 5) Se c'è un access_token, facciamo deep link verso l'app
-    const token = fragmentParams['access_token'];
+    // 5) Se c'è un access_token, facciamo il deep link verso l'app
+    const token = fragmentParams["access_token"];
 
     if (token) {
-        const deeplink = `ircminichat://auth?slot=${encodeURIComponent(slot)}#access_token=${encodeURIComponent(token)}`;
+        // Mettiamo slot e token nel FRAGMENT del deep link, così è facile da leggere in Android
+        const deeplink = `ircminichat://auth#slot=${encodeURIComponent(slot)}&access_token=${encodeURIComponent(token)}`;
 
-        // piccolo delay per vedere il JSON al volo, poi redirect
+        // piccolo delay per vedere il JSON al volo, poi redirect all'app
         setTimeout(() => {
             window.location = deeplink;
         }, 500);
     }
 </script>
+
 
 
 </body>
