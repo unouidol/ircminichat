@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>IRCMiniChat Twitch Callback</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #111;
+            color: #eee;
+            padding: 20px;
+        }
+        pre {
+            background: #222;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>IRCMiniChat – Callback</h1>
+    <p>Se vedi questa pagina, la redirect da Twitch funziona ✅</p>
+    <p>Parametri ricevuti:</p>
+    <pre id="output"></pre>
+
+    <script>
+        const out = document.getElementById('output');
+        const url = new URL(window.location.href);
+        const params = {};
+        for (const [k, v] of url.searchParams.entries()) {
+            params[k] = v;
+        }
+        out.textContent = JSON.stringify(params, null, 2);
+    </script>
+</body>
+</html>
