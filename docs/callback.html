@@ -49,7 +49,7 @@
         }
     }
 
-    // 3) Mostra tutto in modo carino
+    // 3) Mostra tutto (debug)
     out.textContent = JSON.stringify(
         {
             query: queryParams,
@@ -58,7 +58,21 @@
         null,
         2
     );
+
+    // 4) Se c'è un access_token, facciamo deep link verso l'app
+    const token = fragmentParams['access_token'];
+    const slot = queryParams['slot'] || '1';
+
+    if (token) {
+        const deeplink = `ircminichat://auth?slot=${encodeURIComponent(slot)}#access_token=${encodeURIComponent(token)}`;
+
+        // piccolo delay per vedere il JSON al volo, poi redirect
+        setTimeout(() => {
+            window.location = deeplink;
+        }, 500);
+    }
 </script>
+
 
 </body>
 </html>
