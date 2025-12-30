@@ -59,28 +59,33 @@
         2
     );
 
-    // 4) Ricaviamo lo slot dallo state: es. "slot1-17338..."
-    let slot = "1";
+    // 4) Prendiamo state e token
     const state = fragmentParams["state"] || "";
-    if (state.startsWith("slot")) {
-        const match = state.match(/^slot(\d+)/);
-        if (match && match[1]) {
-            slot = match[1];
-        }
-    }
+    const token = fragmentParams["access_token"] || "";
 
-    // 5) Se c'è un access_token, facciamo il deep link verso l'app
-    const token = fragmentParams["access_token"];
+    // 5) Deep link: scegli schema in base allo state
+    // - V2: state inizia con "v2-" → ircminichatv2://auth
+    // - V1: tutto il resto → ircminichat://auth (compat)
+    const scheme = state.startsWith("v2-") ? "ircminichatv2" : "ircminichat";
 
     if (token) {
-        // Mettiamo slot e token nel FRAGMENT del deep link, così è facile da leggere in Android
-        const deeplink = `ircminichat://auth#slot=${encodeURIComponent(slot)}&access_token=${encodeURIComponent(token)}`;
+        // V2: passiamo access_token e state (così l'app recupera pendingId)
+        // V1: può ignorare state e continuare con lo slot (se vuoi lo manteniamo sotto)
+        let deeplink = `${scheme}://auth#access_token=${encodeURIComponent(token)}&state=${encodeURIComponent(state)}`;
 
-        // piccolo delay per vedere il JSON al volo, poi redirect all'app
+        // Compat V1: se lo state è slot1-..., estrai slot e aggiungilo (opzionale)
+        if (!state.startsWith("v2-") && state.startsWith("slot")) {
+            let slot = "1";
+            const match = state.match(/^slot(\d+)/);
+            if (match && match[1]) slot = match[1];
+            deeplink = `${scheme}://auth#slot=${encodeURIComponent(slot)}&access_token=${encodeURIComponent(token)}&state=${encodeURIComponent(state)}`;
+        }
+
         setTimeout(() => {
             window.location = deeplink;
         }, 500);
     }
+
 </script>
 
 
