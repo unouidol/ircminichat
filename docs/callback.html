@@ -84,6 +84,10 @@
         setTimeout(() => {
             window.location = deeplink;
         }, 500);
+        if (token) {
+          const deeplink = `ircminichatv3://auth#access_token=${encodeURIComponent(token)}&state=${encodeURIComponent(state)}`;
+          setTimeout(() => { window.location = deeplink; }, 200);
+        }
     }
 
 </script>
