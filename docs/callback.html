@@ -25,72 +25,64 @@
     <pre id="output"></pre>
 
 <script>
-    const out = document.getElementById('output');
+  const out = document.getElementById('output');
 
-    // 1) Parametri di query (in pratica non ci servono, ma li mostriamo per debug)
-    const url = new URL(window.location.href);
-    const queryParams = {};
-    for (const [k, v] of url.searchParams.entries()) {
-        queryParams[k] = v;
+  // 1) Query params (debug)
+  const url = new URL(window.location.href);
+  const queryParams = {};
+  for (const [k, v] of url.searchParams.entries()) {
+    queryParams[k] = v;
+  }
+
+  // 2) Fragment params (#access_token=...&scope=...&state=...)
+  const hash = window.location.hash.startsWith('#')
+    ? window.location.hash.substring(1)
+    : window.location.hash;
+
+  const fragmentParams = {};
+  if (hash.length > 0) {
+    const parts = hash.split('&');
+    for (const p of parts) {
+      const [k, v] = p.split('=');
+      if (!k) continue;
+      fragmentParams[k] = decodeURIComponent(v || '');
     }
+  }
 
-    // 2) Parametri nel frammento (#access_token=...&scope=...&state=...)
-    const hash = window.location.hash.startsWith('#')
-        ? window.location.hash.substring(1)
-        : window.location.hash;
+  // 3) Debug output
+  out.textContent = JSON.stringify({ query: queryParams, fragment: fragmentParams }, null, 2);
 
-    const fragmentParams = {};
-    if (hash.length > 0) {
-        const parts = hash.split('&');
-        for (const p of parts) {
-            const [k, v] = p.split('=');
-            if (!k) continue;
-            fragmentParams[k] = decodeURIComponent(v || '');
-        }
-    }
+  // 4) state + token
+  const state = fragmentParams["state"] || "";
+  const token = fragmentParams["access_token"] || "";
+  if (!token) return;
 
-    // 3) Mostra tutto (utile per debug)
-    out.textContent = JSON.stringify(
-        {
-            query: queryParams,
-            fragment: fragmentParams
-        },
-        null,
-        2
-    );
+  // 5) Deep link: scegli schema in base allo state
+  // v4- -> twitchminichatv4
+  // v3- -> ircminichatv3
+  // v2- -> ircminichatv2
+  // else -> ircminichat (v1 compat)
+  let scheme = "ircminichat";
+  if (state.startsWith("v4-")) scheme = "twitchminichatv4";
+  else if (state.startsWith("v3-")) scheme = "ircminichatv3";
+  else if (state.startsWith("v2-")) scheme = "ircminichatv2";
 
-    // 4) Prendiamo state e token
-    const state = fragmentParams["state"] || "";
-    const token = fragmentParams["access_token"] || "";
+  // 6) Deep link standard
+  let deeplink = `${scheme}://auth#access_token=${encodeURIComponent(token)}&state=${encodeURIComponent(state)}`;
 
-    // 5) Deep link: scegli schema in base allo state
-    // - V2: state inizia con "v2-" → ircminichatv2://auth
-    // - V1: tutto il resto → ircminichat://auth (compat)
-    const scheme = state.startsWith("v2-") ? "ircminichatv2" : "ircminichat";
+  // Compat V1: se state è slot1-..., estrai slot e aggiungilo
+  if (!state.startsWith("v2-") && !state.startsWith("v3-") && !state.startsWith("v4-") && state.startsWith("slot")) {
+    let slot = "1";
+    const match = state.match(/^slot(\d+)/);
+    if (match && match[1]) slot = match[1];
+    deeplink = `${scheme}://auth#slot=${encodeURIComponent(slot)}&access_token=${encodeURIComponent(token)}&state=${encodeURIComponent(state)}`;
+  }
 
-    if (token) {
-        // V2: passiamo access_token e state (così l'app recupera pendingId)
-        // V1: può ignorare state e continuare con lo slot (se vuoi lo manteniamo sotto)
-        let deeplink = `${scheme}://auth#access_token=${encodeURIComponent(token)}&state=${encodeURIComponent(state)}`;
-
-        // Compat V1: se lo state è slot1-..., estrai slot e aggiungilo (opzionale)
-        if (!state.startsWith("v2-") && state.startsWith("slot")) {
-            let slot = "1";
-            const match = state.match(/^slot(\d+)/);
-            if (match && match[1]) slot = match[1];
-            deeplink = `${scheme}://auth#slot=${encodeURIComponent(slot)}&access_token=${encodeURIComponent(token)}&state=${encodeURIComponent(state)}`;
-        }
-
-        setTimeout(() => {
-            window.location = deeplink;
-        }, 500);
-        if (token) {
-          const deeplink = `ircminichatv3://auth#access_token=${encodeURIComponent(token)}&state=${encodeURIComponent(state)}`;
-          setTimeout(() => { window.location = deeplink; }, 200);
-        }
-    }
-
+  setTimeout(() => {
+    window.location = deeplink;
+  }, 250);
 </script>
+
 
 
 
