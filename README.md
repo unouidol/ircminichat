@@ -1,2 +1,2 @@
 # ircminichat
-IRC minichat is a lightweight chat app for twitch for fast interaction with channels that support chatbot games (es. embervale, PCG)
+IRC minichat is a callback html page used to streamline the token retrieval phase when logging in into TwtichMinichat application
