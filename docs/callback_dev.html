@@ -1,1 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>TwitchMiniChat_dev Callback</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #111;
+            color: #eee;
+            padding: 20px;
+        }
+        pre {
+            background: #222;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>IRCMiniChat – Callback</h1>
+    <p>Se vedi questa pagina, la redirect da Twitch funziona ✅</p>
+    <p>Parametri ricevuti:</p>
+    <pre id="output">HTML OK (pre iniziale) — se resta così, JS non gira</pre>
+
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const out = document.getElementById("output");
+    out.textContent = "JS START ✅\n";
+
+    try {
+      const href = window.location.href;
+      const hashRaw = window.location.hash;
+
+      const query = Object.fromEntries(new URL(href).searchParams.entries());
+      const frag = hashRaw.startsWith("#") ? hashRaw.slice(1) : hashRaw;
+      const fragment = Object.fromEntries(new URLSearchParams(frag).entries());
+
+      out.textContent = JSON.stringify({ href, hashRaw, query, fragment }, null, 2);
+
+      const token = fragment["access_token"] || "";
+      const state = fragment["state"] || "";
+      if (!token) return;
+
+
+      const scheme = state.startsWith("v2g-") ? "twitchminichatdev" : "twitchminichat";
+
+      const deeplink =
+        `${scheme}://auth#access_token=${encodeURIComponent(token)}&state=${encodeURIComponent(state)}`;
+
+      setTimeout(() => { window.location = deeplink; }, 800);
+
+    } catch (e) {
+      out.textContent = "JS ERROR:\n" + (e && e.stack ? e.stack : String(e));
+    }
+  });
+</script>
+
+
+
+
+
+</body>
+</html>
 
