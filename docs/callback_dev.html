@@ -44,7 +44,7 @@
       if (!token) return;
 
 
-      const scheme = state.startsWith("v2g-") ? "twitchminichatdev" : "twitchminichat";
+      const scheme = "twitchminichatdev";
 
       const deeplink =
         `${scheme}://auth#access_token=${encodeURIComponent(token)}&state=${encodeURIComponent(state)}`;
