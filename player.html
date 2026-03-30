@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    #player {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+  <script src="https://player.twitch.tv/js/embed/v1.js"></script>
+</head>
+<body>
+  <div id="player"></div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const channel = params.get("channel") || "unouidol";
+    const muted = (params.get("muted") ?? "true") === "true";
+
+    const player = new Twitch.Player("player", {
+      width: "100%",
+      height: "100%",
+      channel,
+      parent: ["unouidol.github.io"],
+      autoplay: false,
+      muted
+    });
+
+    window.setChannel = function (newChannel) {
+      if (newChannel) player.setChannel(newChannel);
+    };
+
+    window.setMutedState = function (value) {
+      player.setMuted(!!value);
+    };
+
+    window.toggleMute = function () {
+      player.setMuted(!player.getMuted());
+      return player.getMuted();
+    };
+
+    window.playStream = function () {
+      player.play();
+    };
+
+    window.pauseStream = function () {
+      player.pause();
+    };
+
+    window.setLowQuality = function () {
+      const qualities = player.getQualities();
+      if (!qualities || !qualities.length) return;
+      const preferred = qualities.find(q => q.includes("360")) ||
+                        qualities.find(q => q.includes("160")) ||
+                        qualities.find(q => q.includes("480")) ||
+                        qualities[qualities.length - 1];
+      if (preferred) player.setQuality(preferred);
+    };
+  </script>
+</body>
+</html>
