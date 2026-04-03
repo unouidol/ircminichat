@@ -67,7 +67,10 @@ window.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const scheme = state.startsWith("v2g-") ? "ircminichatv2gecko" : "ircminichatv2";
+    // Per la build stabile che hai caricato:
+    // v2g-* -> twitchminichat://auth
+    // altrimenti -> ircminichatv2://auth
+    const scheme = state.startsWith("v2g-") ? "twitchminichat" : "ircminichatv2";
 
     const deeplink =
       `${scheme}://auth#access_token=${encodeURIComponent(token)}&state=${encodeURIComponent(state)}`;
@@ -81,12 +84,15 @@ window.addEventListener("DOMContentLoaded", () => {
       deeplink_preview: `${scheme}://auth#access_token=***&state=${state}`
     }, null, 2);
 
+    // Tentativo immediato
     window.location.replace(deeplink);
 
+    // Fallback 1
     setTimeout(() => {
       window.location.href = deeplink;
     }, 350);
 
+    // Fallback 2
     setTimeout(() => {
       openAppBtn.click();
     }, 900);
