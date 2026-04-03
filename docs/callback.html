@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>IRCMiniChat Twitch Callback</title>
     <style>
         body {
@@ -15,51 +16,85 @@
             padding: 10px;
             border-radius: 6px;
             overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .btn {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .muted {
+            color: #aaa;
+            margin-top: 14px;
         }
     </style>
 </head>
 <body>
     <h1>IRCMiniChat – Callback</h1>
-    <p>Se vedi questa pagina, la redirect da Twitch funziona ✅</p>
-    <p>Parametri ricevuti:</p>
-    <pre id="output">HTML OK (pre iniziale) — se resta così, JS non gira</pre>
+    <p>Redirecting to the app…</p>
+
+    <a id="openAppBtn" class="btn" href="#">Open app</a>
+
+    <p class="muted">
+        If the app does not open automatically, tap the button above.
+    </p>
+
+    <pre id="output">Waiting for parameters…</pre>
 
 <script>
-  window.addEventListener("DOMContentLoaded", () => {
-    const out = document.getElementById("output");
-    out.textContent = "JS START ✅\n";
+window.addEventListener("DOMContentLoaded", () => {
+  const out = document.getElementById("output");
+  const openAppBtn = document.getElementById("openAppBtn");
 
-    try {
-      const href = window.location.href;
-      const hashRaw = window.location.hash;
+  try {
+    const href = window.location.href;
+    const hashRaw = window.location.hash || "";
+    const frag = hashRaw.startsWith("#") ? hashRaw.slice(1) : hashRaw;
+    const fragment = Object.fromEntries(new URLSearchParams(frag).entries());
 
-      const query = Object.fromEntries(new URL(href).searchParams.entries());
-      const frag = hashRaw.startsWith("#") ? hashRaw.slice(1) : hashRaw;
-      const fragment = Object.fromEntries(new URLSearchParams(frag).entries());
+    const token = fragment["access_token"] || "";
+    const state = fragment["state"] || "";
 
-      out.textContent = JSON.stringify({ href, hashRaw, query, fragment }, null, 2);
-
-      const token = fragment["access_token"] || "";
-      const state = fragment["state"] || "";
-      if (!token) return;
-
-      // SOLO 2 versioni:
-      const scheme = state.startsWith("v2g-") ? "ircminichatv2gecko" : "ircminichatv2";
-
-      const deeplink =
-        `${scheme}://auth#access_token=${encodeURIComponent(token)}&state=${encodeURIComponent(state)}`;
-
-      setTimeout(() => { window.location = deeplink; }, 800);
-
-    } catch (e) {
-      out.textContent = "JS ERROR:\n" + (e && e.stack ? e.stack : String(e));
+    if (!token) {
+      out.textContent = "ERROR: missing access_token\n\n" +
+        JSON.stringify({ href, hashRaw, fragment }, null, 2);
+      return;
     }
-  });
+
+    const scheme = state.startsWith("v2g-") ? "ircminichatv2gecko" : "ircminichatv2";
+
+    const deeplink =
+      `${scheme}://auth#access_token=${encodeURIComponent(token)}&state=${encodeURIComponent(state)}`;
+
+    openAppBtn.href = deeplink;
+
+    out.textContent = JSON.stringify({
+      ok: true,
+      scheme,
+      state,
+      deeplink_preview: `${scheme}://auth#access_token=***&state=${state}`
+    }, null, 2);
+
+    window.location.replace(deeplink);
+
+    setTimeout(() => {
+      window.location.href = deeplink;
+    }, 350);
+
+    setTimeout(() => {
+      openAppBtn.click();
+    }, 900);
+
+  } catch (e) {
+    out.textContent = "JS ERROR:\n" + (e && e.stack ? e.stack : String(e));
+  }
+});
 </script>
-
-
-
-
-
 </body>
 </html>
