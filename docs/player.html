@@ -40,15 +40,6 @@
       if (newChannel) player.setChannel(newChannel);
     };
 
-    window.setMutedState = function (value) {
-      player.setMuted(!!value);
-    };
-
-    window.toggleMute = function () {
-      player.setMuted(!player.getMuted());
-      return player.getMuted();
-    };
-
     window.playStream = function () {
       player.play();
     };
